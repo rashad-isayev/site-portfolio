@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "title": "My First Test Post",
+    "slug": "my-first-test",
+    "description": "Testing my portfolio blog.",
+    "date": "2026-11-18",
+    "tags": [
+      "Testing"
+    ],
+    "category": "Development",
+    "draft": false,
+    "featured": false,
+    "author": "Rashad Isayev",
+    "sourceFile": "test.md",
+    "excerpt": "Testing my portfolio blog.",
+    "readingMinutes": 1
+  }
+]
