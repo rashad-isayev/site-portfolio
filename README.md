@@ -1,41 +1,60 @@
-# Personal Portfolio Website
+# Rashad Isayev Personal Portfolio
 
-A responsive personal portfolio built for **SITE 1101: Principles of Information Systems**.
+A static, repository-managed portfolio for **SITE 1101: Principles of Information Systems**. It provides the Home, About, Projects, and Blog foundations and is ready for later visual and gamified development.
 
-## Pages
+## Current functionality
 
-- **Home** — introduction, profile illustration, and portfolio highlights
-- **About** — background and an interactive gamified learning journey
-- **Projects** — Project 1 (personal website), Project 2 (Hour of Code), and Project 3 (Robotics)
+- Responsive Home, About, Projects, and Blog pages
+- Centralized profile data in `content/profile/profile.json`
+- Manual academic project records in `content/projects/projects.json`
+- Public GitHub repository synchronization and cached snapshots
+- Search and filtering for projects and articles
+- Markdown article validation and static article generation
+- RSS, sitemap, robots configuration, and GitHub source/edit links
+- GitHub Actions build and deployment workflow
 
-## Technologies
+## Technology
 
-- HTML5
-- CSS3
-- Vanilla JavaScript
-- Git and GitHub
-- GitHub Pages
+HTML5, CSS3, vanilla JavaScript ES modules, Node.js build scripts, Git, GitHub Actions, GitHub Pages, and minimal Markdown tooling.
 
-## Project Structure
+## Structure
 
 ```text
-.
-├── index.html
-├── about.html
-├── projects.html
-├── assets/
-│   ├── css/style.css
-│   ├── js/main.js
-│   └── images/
-└── README.md
+content/       Editable profile, project, and blog content
+public/data/   Static generated data snapshots
+scripts/       Repository sync, validation, blog generation, and build
+assets/        CSS, JavaScript, and images
+blog/          Blog listing source
+.dist          Generated static output (created by npm run build)
+.github/       Deployment workflow
 ```
 
-## Run Locally
+## Commands
 
-Open `index.html` in a browser, or use a VS Code Live Server session.
+```sh
+npm ci
+npm test
+npm run sync:repos
+npm run validate
+npm run build
+```
 
-## GitHub Pages
+## Local preview
 
-After pushing this repository to GitHub, enable Pages from **Settings → Pages → Deploy from a branch** and select the repository's main branch with the `/ (root)` folder.
+Run `npm run build`, then serve the repository or `dist/` directory with a static server. Because Pages uses `/site-portfolio/`, verify the production build under that base path.
+
+## Content management
+
+- Update profile information in `content/profile/profile.json`.
+- Update manual academic projects in `content/projects/projects.json`.
+- Manage repository rules in `content/projects/config.json`.
+- Manage articles through GitHub using `BLOG_GUIDE.md`.
+- Track missing authentic content using `CONTENT_TODO.md`.
+
+## Deployment
+
+The repository uses GitHub Actions in `.github/workflows/deploy.yml` and deploys `dist/` to GitHub Pages. Repository synchronization runs during push, scheduled, and manual workflow runs.
 
 Repository: https://github.com/rashad-isayev/site-portfolio
+
+Production: https://rashad-isayev.github.io/site-portfolio/

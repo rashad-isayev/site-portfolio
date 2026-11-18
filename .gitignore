@@ -3,3 +3,15 @@
 
 # Editor files
 .vscode/
+
+# Local dependencies and virtual environments
+node_modules/
+.venv/
+
+# Local build output
+dist/
+
+# Environment and credential files
+.env
+.env.*
+!.env.example

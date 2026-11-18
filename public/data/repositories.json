@@ -1,0 +1,172 @@
+{
+  "syncedAt": "2026-11-18T17:20:24.955Z",
+  "repositories": [
+    {
+      "id": "1449772348",
+      "name": "rashad-isayev",
+      "fullName": "rashad-isayev/rashad-isayev",
+      "title": "rashad-isayev",
+      "description": "personal github profile",
+      "url": "https://github.com/rashad-isayev/rashad-isayev",
+      "homepage": "",
+      "language": "",
+      "topics": [],
+      "stars": 0,
+      "forks": 0,
+      "createdAt": "2026-11-07T22:01:11Z",
+      "updatedAt": "2026-11-07T22:01:20Z",
+      "pushedAt": "2026-11-07T22:01:17Z",
+      "defaultBranch": "main",
+      "archived": false,
+      "fork": false,
+      "featured": false,
+      "category": "github",
+      "image": "",
+      "imageAlt": "",
+      "technologies": [],
+      "links": {
+        "repository": "https://github.com/rashad-isayev/rashad-isayev",
+        "live": ""
+      }
+    },
+    {
+      "id": "1448195148",
+      "name": "proofskill",
+      "fullName": "rashad-isayev/proofskill",
+      "title": "proofskill",
+      "description": "Workplace assessment simulations with AI-guided scenarios and evidence reports for human review.",
+      "url": "https://github.com/rashad-isayev/proofskill",
+      "homepage": "",
+      "language": "TypeScript",
+      "topics": [
+        "nextjs",
+        "postgresql",
+        "skills-assessment",
+        "typescript",
+        "workplace-simulation"
+      ],
+      "stars": 0,
+      "forks": 0,
+      "createdAt": "2026-11-06T11:44:36Z",
+      "updatedAt": "2026-11-06T19:19:07Z",
+      "pushedAt": "2026-11-06T19:19:03Z",
+      "defaultBranch": "main",
+      "archived": false,
+      "fork": false,
+      "featured": false,
+      "category": "github",
+      "image": "",
+      "imageAlt": "",
+      "technologies": [
+        "TypeScript"
+      ],
+      "links": {
+        "repository": "https://github.com/rashad-isayev/proofskill",
+        "live": ""
+      }
+    },
+    {
+      "id": "1196149546",
+      "name": "cp-trainer",
+      "fullName": "rashad-isayev/cp-trainer",
+      "title": "cp-trainer",
+      "description": "this project is built as a final project for the cs50x course",
+      "url": "https://github.com/rashad-isayev/cp-trainer",
+      "homepage": "",
+      "language": "TypeScript",
+      "topics": [],
+      "stars": 0,
+      "forks": 0,
+      "createdAt": "2026-03-30T12:22:30Z",
+      "updatedAt": "2026-09-20T09:15:54Z",
+      "pushedAt": "2026-05-27T22:47:23Z",
+      "defaultBranch": "main",
+      "archived": false,
+      "fork": false,
+      "featured": false,
+      "category": "github",
+      "image": "",
+      "imageAlt": "",
+      "technologies": [
+        "TypeScript"
+      ],
+      "links": {
+        "repository": "https://github.com/rashad-isayev/cp-trainer",
+        "live": ""
+      }
+    },
+    {
+      "id": "834596083",
+      "name": "100daysofcode",
+      "fullName": "rashad-isayev/100daysofcode",
+      "title": "100daysofcode",
+      "description": "This repository will contain 100+ Python projects which are a part of the #100DaysOfCode challenge. You can review or use the projects I'll be sharing on this repository to empower your learning on Python.",
+      "url": "https://github.com/rashad-isayev/100daysofcode",
+      "homepage": "",
+      "language": "Python",
+      "topics": [
+        "100daysofcode",
+        "100daysofpython",
+        "python"
+      ],
+      "stars": 6,
+      "forks": 1,
+      "createdAt": "2024-07-27T18:47:34Z",
+      "updatedAt": "2026-09-20T09:15:48Z",
+      "pushedAt": "2026-09-20T09:06:29Z",
+      "defaultBranch": "main",
+      "archived": false,
+      "fork": false,
+      "featured": false,
+      "category": "github",
+      "image": "",
+      "imageAlt": "",
+      "technologies": [
+        "Python"
+      ],
+      "links": {
+        "repository": "https://github.com/rashad-isayev/100daysofcode",
+        "live": ""
+      }
+    },
+    {
+      "id": "840061608",
+      "name": "competitive-programming",
+      "fullName": "rashad-isayev/competitive-programming",
+      "title": "competitive-programming",
+      "description": "Here you can find some useful solutions to classical competitive programming problems across several subtopics, such as graph theory, dynamic programming, range queries, and more.",
+      "url": "https://github.com/rashad-isayev/competitive-programming",
+      "homepage": "",
+      "language": "C++",
+      "topics": [
+        "algorithms",
+        "bfs",
+        "competitive-programming",
+        "cpp",
+        "dfs",
+        "dynamic-programming",
+        "graph",
+        "greedy-algorithms"
+      ],
+      "stars": 0,
+      "forks": 0,
+      "createdAt": "2024-08-08T22:30:09Z",
+      "updatedAt": "2026-09-20T09:15:17Z",
+      "pushedAt": "2026-05-10T19:08:52Z",
+      "defaultBranch": "main",
+      "archived": false,
+      "fork": false,
+      "featured": false,
+      "category": "github",
+      "image": "",
+      "imageAlt": "",
+      "technologies": [
+        "C++"
+      ],
+      "links": {
+        "repository": "https://github.com/rashad-isayev/competitive-programming",
+        "live": ""
+      }
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rashad-isayev.github.io/site-portfolio/sitemap.xml

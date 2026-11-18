@@ -1,0 +1,15 @@
+{
+  "name": "Rashad Isayev",
+  "profilePhotograph": "",
+  "profilePhotographStatus": "PLACEHOLDER — replace with a real, approved profile photograph",
+  "shortIntroduction": "I am a student interested in how information systems, web development, and robotics can solve practical problems.",
+  "extendedBiography": "This portfolio records my learning and projects. Additional verified background, qualifications, and experiences should be added here when provided.",
+  "education": [],
+  "qualifications": [],
+  "technicalSkills": ["HTML", "CSS", "JavaScript", "Git", "GitHub"],
+  "activities": [],
+  "experiences": [],
+  "interests": [],
+  "goals": [],
+  "socialLinks": { "github": "https://github.com/rashad-isayev" }
+}

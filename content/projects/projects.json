@@ -1,0 +1,5 @@
+[
+  {"id":"academic-project-1","title":"Project 1","shortDescription":"Authentic project information to be provided.","description":"PLACEHOLDER — Replace this text and the project image with details from your first academic project.","category":"academic","featured":true,"image":"","imageAlt":"","date":"","technologies":[],"contribution":"","repositoryAssociation":"","links":{}},
+  {"id":"academic-hour-of-code","title":"Project 2 — Hour of Code","shortDescription":"An Hour of Code learning and community activity.","description":"PLACEHOLDER — Add your authentic activity details, organization, role, and supporting screenshots.","category":"academic","featured":true,"image":"","imageAlt":"","date":"","technologies":[],"contribution":"","repositoryAssociation":"","links":{}},
+  {"id":"academic-robotics","title":"Project 3 — Robotics","shortDescription":"A robotics challenge and team project.","description":"PLACEHOLDER — Add your authentic robotics goal, team role, implementation, and photographs.","category":"academic","featured":true,"image":"","imageAlt":"","date":"","technologies":[],"contribution":"","repositoryAssociation":"","links":{}}
+]

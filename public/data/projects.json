@@ -1,0 +1,145 @@
+[
+  {
+    "id": "academic-project-1",
+    "title": "Project 1",
+    "shortDescription": "Authentic project information to be provided.",
+    "description": "PLACEHOLDER — Replace this text and the project image with details from your first academic project.",
+    "category": "academic",
+    "featured": true,
+    "image": "",
+    "imageAlt": "",
+    "date": "",
+    "technologies": [],
+    "contribution": "",
+    "repositoryAssociation": "",
+    "links": {}
+  },
+  {
+    "id": "academic-hour-of-code",
+    "title": "Project 2 — Hour of Code",
+    "shortDescription": "An Hour of Code learning and community activity.",
+    "description": "PLACEHOLDER — Add your authentic activity details, organization, role, and supporting screenshots.",
+    "category": "academic",
+    "featured": true,
+    "image": "",
+    "imageAlt": "",
+    "date": "",
+    "technologies": [],
+    "contribution": "",
+    "repositoryAssociation": "",
+    "links": {}
+  },
+  {
+    "id": "academic-robotics",
+    "title": "Project 3 — Robotics",
+    "shortDescription": "A robotics challenge and team project.",
+    "description": "PLACEHOLDER — Add your authentic robotics goal, team role, implementation, and photographs.",
+    "category": "academic",
+    "featured": true,
+    "image": "",
+    "imageAlt": "",
+    "date": "",
+    "technologies": [],
+    "contribution": "",
+    "repositoryAssociation": "",
+    "links": {}
+  },
+  {
+    "id": "github-1449772348",
+    "title": "rashad-isayev",
+    "shortDescription": "personal github profile",
+    "description": "personal github profile",
+    "category": "github",
+    "featured": false,
+    "image": "",
+    "imageAlt": "",
+    "date": "2026-11-07T22:01:11Z",
+    "technologies": [],
+    "contribution": "",
+    "repositoryAssociation": "rashad-isayev/rashad-isayev",
+    "links": {
+      "repository": "https://github.com/rashad-isayev/rashad-isayev",
+      "live": ""
+    }
+  },
+  {
+    "id": "github-1448195148",
+    "title": "proofskill",
+    "shortDescription": "Workplace assessment simulations with AI-guided scenarios and evidence reports for human review.",
+    "description": "Workplace assessment simulations with AI-guided scenarios and evidence reports for human review.",
+    "category": "github",
+    "featured": false,
+    "image": "",
+    "imageAlt": "",
+    "date": "2026-11-06T11:44:36Z",
+    "technologies": [
+      "TypeScript"
+    ],
+    "contribution": "",
+    "repositoryAssociation": "rashad-isayev/proofskill",
+    "links": {
+      "repository": "https://github.com/rashad-isayev/proofskill",
+      "live": ""
+    }
+  },
+  {
+    "id": "github-1196149546",
+    "title": "cp-trainer",
+    "shortDescription": "this project is built as a final project for the cs50x course",
+    "description": "this project is built as a final project for the cs50x course",
+    "category": "github",
+    "featured": false,
+    "image": "",
+    "imageAlt": "",
+    "date": "2026-03-30T12:22:30Z",
+    "technologies": [
+      "TypeScript"
+    ],
+    "contribution": "",
+    "repositoryAssociation": "rashad-isayev/cp-trainer",
+    "links": {
+      "repository": "https://github.com/rashad-isayev/cp-trainer",
+      "live": ""
+    }
+  },
+  {
+    "id": "github-834596083",
+    "title": "100daysofcode",
+    "shortDescription": "This repository will contain 100+ Python projects which are a part of the #100DaysOfCode challenge. You can review or use the projects I'll be sharing on this repository to empower your learning on Python.",
+    "description": "This repository will contain 100+ Python projects which are a part of the #100DaysOfCode challenge. You can review or use the projects I'll be sharing on this repository to empower your learning on Python.",
+    "category": "github",
+    "featured": false,
+    "image": "",
+    "imageAlt": "",
+    "date": "2024-07-27T18:47:34Z",
+    "technologies": [
+      "Python"
+    ],
+    "contribution": "",
+    "repositoryAssociation": "rashad-isayev/100daysofcode",
+    "links": {
+      "repository": "https://github.com/rashad-isayev/100daysofcode",
+      "live": ""
+    }
+  },
+  {
+    "id": "github-840061608",
+    "title": "competitive-programming",
+    "shortDescription": "Here you can find some useful solutions to classical competitive programming problems across several subtopics, such as graph theory, dynamic programming, range queries, and more.",
+    "description": "Here you can find some useful solutions to classical competitive programming problems across several subtopics, such as graph theory, dynamic programming, range queries, and more.",
+    "category": "github",
+    "featured": false,
+    "image": "",
+    "imageAlt": "",
+    "date": "2024-08-08T22:30:09Z",
+    "technologies": [
+      "C++"
+    ],
+    "contribution": "",
+    "repositoryAssociation": "rashad-isayev/competitive-programming",
+    "links": {
+      "repository": "https://github.com/rashad-isayev/competitive-programming",
+      "live": ""
+    }
+  }
+]
