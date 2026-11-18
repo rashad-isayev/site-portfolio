@@ -1,7 +1,7 @@
 # Development Progress
 
 ## Current milestone
-Technical foundation and automated static content pipeline.
+Creative overhaul — full-screen game vertical-slice checkpoint.
 
 ## Completed
 - Audited and preserved the existing portfolio and Git history.
@@ -21,6 +21,14 @@ Technical foundation and automated static content pipeline.
 - Learning region dialog, signal routing, and companion sequence interactions verified in-browser.
 - Responsive controls and conventional About fallback remain available.
 
+## Complete-overhaul checkpoint
+- Replaced the About widget with a full-viewport top-down adventure surface.
+- Implemented continuous WASD/arrow movement, running, collision boundaries, camera rendering, touch controls, NPC dialogue, map navigation, text view, pause/reset, and enterable Developer Studio interior.
+- Replaced the previous cold palette with warm paper, charcoal, forest, terracotta, moss, and restrained gold surfaces.
+- Redesigned ordinary page presentation with editorial typography and calmer composition.
+- Inspected the rendered game, Home, and Projects at desktop widths.
+- Tested keyboard movement, building entry, Escape pause, text alternative, and 390px-style touch layout.
+
 ## Visual milestone completed
 - Added a dark-first reusable visual system.
 - Redesigned the Home, Projects, and Blog presentation without changing content sources.
@@ -33,5 +41,10 @@ Technical foundation and automated static content pipeline.
 - Publish first editorial article.
 - Confirm GitHub Pages Actions deployment in repository settings.
 
-## Next step
-Run locked dependency installation, tests, build, and production verification; then commit and push the milestone.
+## Checkpoint status
+The full-screen vertical slice is complete enough for visual and gameplay review. World expansion, the two mini-games, optional quests, and further ordinary-page polish should wait until this checkpoint is approved.
+
+## Required user input
+- Approve or critique the character, world composition, and game scale.
+- Supply the real profile photograph and authentic academic project images.
+- Supply verified biography, qualifications, activities, interests, and goals.
