@@ -41,6 +41,14 @@ Creative overhaul — full-screen game vertical-slice checkpoint.
 - Publish first editorial article.
 - Confirm GitHub Pages Actions deployment in repository settings.
 
+## Article-page milestone
+- Updated the Markdown article generator so every published article receives editorial metadata and a consistent reader layout.
+- Removed source/edit links from individual articles.
+- Added native sharing, copy-link feedback, heading anchors, code-copy controls, and reading-progress feedback.
+- Verified a temporary Markdown post containing headings, lists, links, a blockquote, code, a table, and an image at desktop and mobile widths.
+- Removed the temporary post and rebuilt with zero published placeholder articles.
+- Real shared likes and views remain intentionally unavailable because GitHub Pages has no persistence backend. Integration requirements are documented in `COUNTER_SETUP.md`.
+
 ## Checkpoint status
 The full-screen vertical slice is complete enough for visual and gameplay review. World expansion, the two mini-games, optional quests, and further ordinary-page polish should wait until this checkpoint is approved.
 

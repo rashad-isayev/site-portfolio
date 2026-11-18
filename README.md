@@ -15,7 +15,8 @@ A static, repository-managed portfolio for **SITE 1101: Principles of Informatio
 - Public GitHub repository synchronization and cached snapshots
 - Search and filtering for projects and articles
 - Markdown article validation and static article generation
-- RSS, sitemap, robots configuration, and GitHub source/edit links
+- RSS, sitemap, and robots configuration
+- Polished generated article pages with canonical metadata, sharing, copy-link feedback, code-copy controls, and reading progress
 - GitHub Actions build and deployment workflow
 
 ## Technology
