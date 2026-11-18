@@ -59,15 +59,24 @@ const projectList = document.querySelector('#dynamic-project-list');
 if (projectList) {
   const search = document.querySelector('#project-search');
   const filter = document.querySelector('#project-filter');
+  const sort = document.querySelector('#project-sort');
+  const count = document.querySelector('#project-count');
   let projects = [];
 
   const renderProjects = () => {
     const term = search?.value.toLower?.().trim() || '';
     const category = filter?.value || 'all';
-    const visible = projects.filter((project) => {
+    let visible = projects.filter((project) => {
       const searchable = [project.title, project.description, project.category, ...(project.technologies || [])].join(' ').toLowerCase();
       return (category === 'all' || project.category === category) && (!term || searchable.includes(term));
     });
+    const sortMode = sort?.value || 'featured';
+    visible = [...visible].sort((a, b) => {
+      if (sortMode === 'alphabetical') return (a.title || '').localeCompare(b.title || '');
+      if (sortMode === 'updated') return String(b.date || '').localeCompare(String(a.date || ''));
+      return Number(Boolean(b.featured)) - Number(Boolean(a.featured));
+    });
+    if (count) count.textContent = `${visible.length} project${visible.length === 1 ? '' : 's'}`;
     projectList.innerHTML = visible.length ? visible.map((project) => `
       <article class="project-card">
         <div class="project-image dynamic-project-image"><span>${project.title.slice(0, 1)}</span></div>
@@ -93,6 +102,7 @@ if (projectList) {
   }).catch(() => { projectList.innerHTML = '<p class="empty-state">Project data is temporarily unavailable.</p>'; });
   search?.addEventListener('input', renderProjects);
   filter?.addEventListener('change', renderProjects);
+  sort?.addEventListener('change', renderProjects);
 }
 
 const articleList = document.querySelector('#article-list');
@@ -127,3 +137,10 @@ if (articleList) {
   search?.addEventListener('input', renderArticles);
   category?.addEventListener('change', renderArticles);
 }
+
+const workstation = document.querySelector('.workstation');
+workstation?.addEventListener('click', () => {
+  workstation.classList.toggle('active');
+  const active = workstation.classList.contains('active');
+  workstation.setAttribute('aria-label', active ? 'Turn off the miniature workstation' : 'Activate the miniature workstation');
+});

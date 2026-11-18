@@ -17,6 +17,15 @@ Technical foundation and automated static content pipeline.
 - Static build succeeds with 8 normalized projects.
 - Production pages return successfully in a local static-server preview.
 - Repository synchronization returned 5 eligible public repositories.
+- Desktop Home and About screenshots inspected in-browser.
+- Learning region dialog, signal routing, and companion sequence interactions verified in-browser.
+- Responsive controls and conventional About fallback remain available.
+
+## Visual milestone completed
+- Added a dark-first reusable visual system.
+- Redesigned the Home, Projects, and Blog presentation without changing content sources.
+- Added an interactive miniature workstation to the Home hero.
+- Added an original Canvas portfolio world to About with direct region navigation, keyboard/touch movement support, stateful local progress, reset controls, information dialogs, a signal-routing experiment, and a programmable companion sequence.
 
 ## Outstanding
 - Authenticate factual profile and project information.

@@ -4,6 +4,11 @@ A static, repository-managed portfolio for **SITE 1101: Principles of Informatio
 
 ## Current functionality
 
+- Coherent dark-first responsive visual system and restrained motion
+- Interactive miniature workstation on the Home page
+- Canvas-based explorable portfolio world on About
+- Persistent discoveries, achievements, reset controls, and interactive technical experiments
+
 - Responsive Home, About, Projects, and Blog pages
 - Centralized profile data in `content/profile/profile.json`
 - Manual academic project records in `content/projects/projects.json`
