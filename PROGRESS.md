@@ -21,6 +21,13 @@ Creative overhaul — full-screen game vertical-slice checkpoint.
 - Learning region dialog, signal routing, and companion sequence interactions verified in-browser.
 - Responsive controls and conventional About fallback remain available.
 
+## About-world rebuild checkpoint
+- Replaced the About widget with a full-viewport top-down village and a single controlled explorer sprite.
+- Separated world geometry/content data from rendering and fixed repeated-loop, key-state, and window-blur risks.
+- Added continuous Arrow/WASD movement, normalized diagonal speed, Shift running, E interaction, M map, touch controls, collision boundaries, scene transitions, and exit paths.
+- Replaced dialog-only story delivery with a persistent integrated story rail; the accessible Read About view remains available.
+- Inspected desktop and mobile rendered layouts and tested map navigation, scene entry/exit, text view, and keyboard input.
+
 ## Complete-overhaul checkpoint
 - Replaced the About widget with a full-viewport top-down adventure surface.
 - Implemented continuous WASD/arrow movement, running, collision boundaries, camera rendering, touch controls, NPC dialogue, map navigation, text view, pause/reset, and enterable Developer Studio interior.
