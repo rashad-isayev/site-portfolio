@@ -12,16 +12,18 @@ test('About world has one player renderer and one animation loop', async () => {
 
 test('world data defines bounded scenes and separate locations', async () => {
   const source = await fs.readFile('assets/js/world-data.js', 'utf8');
-  for (const required of ["'outdoor'", "'study'", "'workshop'", "'projects'"]) {
+  for (const required of ['outdoor:', 'study:', 'workshop:', 'projects:', 'Mothlight Archive', 'Starfall Observatory', 'Tidemaker’s Workshop', 'Glasscap Conservatory']) {
     assert.ok(source.includes(required));
   }
-  assert.ok(source.includes('collisions'));
+  assert.ok(source.includes('w: 1920'));
+  assert.ok(source.includes('h: 1280'));
+  assert.ok(source.includes('routes:'));
 });
 
-test('player starts outside the Project Terrace collision area', async () => {
+test('player starts at the Mossbound southern clearing', async () => {
   const source = await fs.readFile('assets/js/world-data.js', 'utf8');
-  assert.ok(source.includes('spawn: { x: 480, y: 260 }'));
-  assert.ok(source.includes('[382,330,196,116]'));
+  assert.ok(source.includes('spawn: { x: 755 * scale, y: 955 * scale }'));
+  assert.ok(source.includes('Tidemaker’s Workshop'));
 });
 
 test('facing direction uses canonical sprite rows and preserves direction', async () => {
@@ -44,4 +46,31 @@ test('custom spritesheets are integrated as source-frame animations', async () =
   const walk = await fs.stat('assets/game/character/player_walk.png');
   assert.ok(idle.size > 0);
   assert.ok(walk.size > 0);
+});
+
+test('Mossbound manifest supplies exact art scale, timing, and spawn', async () => {
+  const manifest = JSON.parse(await fs.readFile('assets/game/mossbound/mossbound-frames.json', 'utf8'));
+  assert.equal(manifest.width, 1536);
+  assert.equal(manifest.height, 1024);
+  assert.equal(manifest.worldScale, 1.25);
+  assert.equal(manifest.worldWidth, 1920);
+  assert.equal(manifest.worldHeight, 1280);
+  assert.equal(manifest.spawn.x, 755);
+  assert.equal(manifest.spawn.y, 955);
+  assert.equal(manifest.frameMs, 160);
+  assert.equal(manifest.frameCount, 12);
+  assert.equal(manifest.loopMs, 1920);
+  assert.equal(manifest.atlas.frameHeight, 256);
+  assert.equal(manifest.atlas.tileSize, 32);
+  assert.equal(manifest.walkable.routes.length, 4);
+});
+
+test('viewport renderer keeps shared art-pixel presentation', async () => {
+  const source = await fs.readFile('assets/js/world.js', 'utf8');
+  assert.ok(source.includes('renderWidth = 48'));
+  assert.ok(source.includes('renderHeight = 72'));
+  assert.ok(source.includes('logicalW = Math.round'));
+  assert.ok(source.includes('ctx.clearRect(0, 0, logicalW, logicalH)'));
+  assert.ok(source.includes('ctx.imageSmoothingEnabled = false'));
+  assert.ok(source.includes('frameCount = Number(manifest.frameCount)'));
 });

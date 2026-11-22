@@ -10,11 +10,18 @@
 
   const state = {
     scene: 'outdoor', player: {
-      x: 480, y: 260, dir: 'down', moving: false,
+      x: 755 * 1.25, y: 955 * 1.25, dir: 'up', moving: false,
       animation: 'idle', frame: 0, animationElapsed: 0
     },
     keys: new Set(), pad: new Set(), near: null, paused: false, textOpen: false,
-    last: performance.now(), raf: 0, resizeObserver: null, cleanup: false
+    last: performance.now(), raf: 0, resizeObserver: null, cleanup: false,
+    moss: {
+      manifest: null,
+      baseLoaded: false,
+      atlasLoaded: false,
+      ambientElapsed: 0,
+      reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches
+    }
   };
 
   const story = document.querySelector('#story-panel');
@@ -49,6 +56,25 @@
   sprites.idle.src = `${spriteAssetBase}player_idle.png?v=2`;
   sprites.walk.src = `${spriteAssetBase}player_walk.png?v=2`;
 
+  const mossBaseUrl = new URL('assets/game/mossbound/mossbound-base.png?v=mossbound-viewport1', document.baseURI);
+  const mossAtlasUrl = new URL('assets/game/mossbound/mossbound-motion-atlas.png?v=mossbound-viewport1', document.baseURI);
+  const mossManifestUrl = new URL('assets/game/mossbound/mossbound-frames.json?v=mossbound-viewport1', document.baseURI);
+  const mossBase = new Image();
+  const mossAtlas = new Image();
+
+  mossBase.onload = () => { state.moss.baseLoaded = true; canvas.dataset.mossBase = 'loaded'; };
+  mossAtlas.onload = () => { state.moss.atlasLoaded = true; canvas.dataset.mossAtlas = 'loaded'; };
+  mossBase.onerror = () => { state.moss.baseLoaded = false; canvas.dataset.mossBase = 'error'; };
+  mossAtlas.onerror = () => { state.moss.atlasLoaded = false; canvas.dataset.mossAtlas = 'error'; };
+
+  fetch(mossManifestUrl)
+    .then(response => response.ok ? response.json() : Promise.reject(new Error(`Manifest ${response.status}`)))
+    .then(manifest => { state.moss.manifest = manifest; canvas.dataset.mossManifest = 'loaded'; })
+    .catch(() => { state.moss.manifest = null; canvas.dataset.mossManifest = 'error'; });
+
+  mossBase.src = mossBaseUrl.href;
+  mossAtlas.src = mossAtlasUrl.href;
+
   function clearInput() {
     state.keys.clear(); state.pad.clear(); state.player.moving = false;
     canvas.dataset.keys = '';
@@ -58,6 +84,24 @@
     const map = data[state.scene];
     if (!map) return true;
     if (x < 24 || y < 24 || x > map.bounds.w - 24 || y > map.bounds.h - 24) return true;
+    if (state.scene === 'outdoor') {
+      const margin = 10;
+      return !map.routes.some(route => {
+        const radius = route.radius + margin;
+        for (let i = 0; i < route.points.length - 1; i++) {
+          const [ax, ay] = route.points[i];
+          const [bx, by] = route.points[i + 1];
+          const dx = bx - ax;
+          const dy = by - ay;
+          const lengthSquared = dx * dx + dy * dy;
+          const t = lengthSquared ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / lengthSquared)) : 0;
+          const px = ax + t * dx;
+          const py = ay + t * dy;
+          if (Math.hypot(x - px, y - py) <= radius) return true;
+        }
+        return false;
+      });
+    }
     return map.collisions.some(([rx, ry, rw, rh]) => x + 10 > rx && x - 10 < rx + rw && y + 12 > ry && y - 12 < ry + rh);
   }
 
@@ -115,6 +159,12 @@
     canvas.dataset.direction = state.player.dir;
     canvas.dataset.animation = state.player.animation;
     canvas.dataset.animationFrame = String(state.player.frame);
+    const manifest = state.moss.manifest;
+    if (manifest) {
+      const frameCount = Number(manifest.frameCount) || 12;
+      const frameMs = Number(manifest.frameMs) || 160;
+      canvas.dataset.ambientFrame = String(Math.floor(state.moss.ambientElapsed / frameMs) % frameCount);
+    }
   }
 
   function update(dt) {
@@ -204,11 +254,12 @@
       : Math.max(0, Math.min(1, p.frame));
     const sourceX = sourceFrame * 64;
     const sourceY = directionRow * 96;
-    const renderScale = 0.78;
-    const renderWidth = 64 * renderScale;
-    const renderHeight = 96 * renderScale;
-    const drawX = Math.round(p.x - renderWidth / 2);
-    const drawY = Math.round(p.y + 12 - renderHeight);
+    const artX = state.scene === 'outdoor' ? p.x / 1.25 : p.x;
+    const artY = state.scene === 'outdoor' ? p.y / 1.25 : p.y;
+    const renderWidth = 48;
+    const renderHeight = 72;
+    const drawX = Math.round(artX - renderWidth / 2);
+    const drawY = Math.round(artY - renderHeight);
 
     ctx.save();
     ctx.imageSmoothingEnabled = false;
@@ -220,35 +271,40 @@
     ctx.restore();
   }
 
-  function drawOutdoor(time) {
-    rect(0,0,960,540,'#80906A');
-    for (let y=24;y<516;y+=32) {
-      for (let x=24;x<936;x+=32) {
-        const shade = (x/32+y/32)%3;
-        rect(x,y,32,32, shade === 0 ? '#86966F' : shade === 1 ? '#7C8D65' : '#7F9068');
-        if ((x*7+y*11)%113 === 0) rect(x+12,y+15,3,3,'#98A37C');
+  function drawOutdoor(time, cameraX, cameraY, viewW, viewH) {
+    if (state.moss.baseLoaded) {
+      ctx.drawImage(
+        mossBase,
+        0, 0, 1536, 1024,
+        -Math.round(cameraX), -Math.round(cameraY), 1536, 1024
+      );
+    } else {
+      rect(0, 0, 1920, 1280, '#1D3028');
+      ctx.fillStyle = '#91A578';
+      ctx.font = '700 24px ui-monospace, monospace';
+      ctx.fillText('Mossbound Forest', 80, 100);
+    }
+    const manifest = state.moss.manifest;
+    if (!state.moss.reducedMotion && manifest && state.moss.atlasLoaded) {
+      const frameCount = Number(manifest.frameCount) || 12;
+      const frameMs = Number(manifest.frameMs) || 160;
+      const frameIndex = Math.floor(state.moss.ambientElapsed / frameMs) % frameCount;
+      const columns = manifest.atlas.columns;
+      const tileSize = manifest.atlas.tileSize;
+      const frameHeight = manifest.atlas.frameHeight;
+      const scale = manifest.worldScale || 1.25;
+      for (let i = 0; i < manifest.atlas.tiles.length; i++) {
+        const tile = manifest.atlas.tiles[i];
+        const sx = (i % columns) * tileSize;
+        const sy = frameIndex * frameHeight + Math.floor(i / columns) * tileSize;
+        const dx = Math.round(tile.x - cameraX);
+        const dy = Math.round(tile.y - cameraY);
+        const size = tileSize;
+        if (dx + size < cameraX || dx > cameraX + viewW ||
+            dy + size < cameraY || dy > cameraY + viewH) continue;
+        ctx.drawImage(mossAtlas, sx, sy, tileSize, tileSize, dx, dy, size, size);
       }
     }
-    rect(438,24,84,492,'#C1B58F'); rect(470,24,20,492,'#D4CAAA');
-    rect(24,258,912,24,'#C1B58F'); rect(24,268,912,5,'#D4CAAA');
-
-    rect(438,258,84,24,'#A99B76'); for(let i=438;i<522;i+=16) rect(i,258,10,24,'#B4A780');
-
-    drawBuilding(data.outdoor.locations[0]);
-    drawBuilding(data.outdoor.locations[1]);
-
-    rect(382,330,196,116,'#B5A98A'); strokeRect(382,330,196,116,'#5B5547');
-    rect(396,344,168,88,'#8DA07A');
-    rect(410,358,140,60,'#6F8A76'); rect(420,368,120,40,'#87A08A');
-
-    rect(94,360,72,36,'#A99B76'); rect(794,360,72,36,'#A99B76');
-    [ [78,330],[84,412],[860,330],[850,408],[350,72],[610,72],[350,472],[610,472] ].forEach(([x,y]) => pixelTree(x,y,time));
-    [[128,300],[808,300],[390,292],[550,292],[180,470],[744,470]].forEach(([x,y]) => pixelBush(x,y));
-    pixelFlower(322,288,'#BD7356'); pixelFlower(638,288,'#D9AE65'); pixelFlower(350,482,'#A8B4FA'); pixelFlower(598,482,'#BD7356');
-
-    rect(446,188,68,45,'#9E9271'); strokeRect(446,188,68,45,'#4F5746'); rect(454,196,52,29,'#78989A');
-    rect(461,188,38,8,'#C8B98E');
-
     drawPlayer();
   }
 
@@ -278,25 +334,66 @@
   }
 
   function resizeCanvas() {
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.max(1, Math.round(rect.width*dpr));
-    canvas.height = Math.max(1, Math.round(rect.height*dpr));
+    render(performance.now());
   }
 
   function render(time) {
     syncDebugState();
-    const cssWidth = canvas.clientWidth, cssHeight = canvas.clientHeight;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cssWidth = window.innerWidth;
+    const cssHeight = window.innerHeight;
     const map = data[state.scene];
-    const scale = Math.max(cssWidth/map.bounds.w, cssHeight/map.bounds.h);
-    const viewW = cssWidth/scale, viewH = cssHeight/scale;
-    let cameraX = state.player.x-viewW/2, cameraY = state.player.y-viewH/2;
-    cameraX = Math.max(0, Math.min(map.bounds.w-viewW, cameraX));
-    cameraY = Math.max(0, Math.min(map.bounds.h-viewH, cameraY));
+    let logicalW;
+    let logicalH;
+    if (state.scene === 'outdoor') {
+      const aspect = cssWidth / Math.max(1, cssHeight);
+      logicalW = Math.round(Math.max(240, Math.min(760, 400 * aspect)));
+      logicalH = 400;
+      if (aspect < 1) logicalW = Math.round(Math.max(240, Math.min(400, 400 * aspect)));
+    } else {
+      logicalW = 640;
+      logicalH = 480;
+    }
+    const artScale = state.scene === 'outdoor' ? 1 : 1;
+    const mapArtW = state.scene === 'outdoor' ? 1536 : map.bounds.w;
+    const mapArtH = state.scene === 'outdoor' ? 1024 : map.bounds.h;
 
-    ctx.setTransform(dpr*scale,0,0,dpr*scale,-cameraX*dpr*scale,-cameraY*dpr*scale);
-    if(state.scene === 'outdoor') drawOutdoor(time); else drawInterior(state.scene,time);
+    let cameraX = 0;
+    let cameraY = 0;
+    if (state.scene === 'outdoor') {
+      const playerArtX = state.player.x / 1.25;
+      const playerArtY = state.player.y / 1.25;
+      cameraX = Math.round(playerArtX - logicalW / 2);
+      cameraY = Math.round(playerArtY - logicalH / 2);
+      cameraX = Math.max(0, Math.min(mapArtW - logicalW, cameraX));
+      cameraY = Math.max(0, Math.min(mapArtH - logicalH, cameraY));
+    } else {
+      cameraX = 0;
+      cameraY = 0;
+    }
+
+    const presentationScale = Math.max(1, Math.floor(Math.min(cssWidth / logicalW, cssHeight / logicalH)));
+    const displayW = logicalW * presentationScale;
+    const displayH = logicalH * presentationScale;
+    if (canvas.width !== logicalW || canvas.height !== logicalH) {
+      canvas.width = logicalW;
+      canvas.height = logicalH;
+    }
+    canvas.style.width = `${displayW}px`;
+    canvas.style.height = `${displayH}px`;
+    canvas.style.left = `calc(50% - ${displayW / 2}px)`;
+    canvas.style.top = `calc(50% - ${displayH / 2}px)`;
+    canvas.style.right = 'auto';
+    canvas.style.bottom = 'auto';
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, logicalW, logicalH);
+    ctx.imageSmoothingEnabled = false;
+    if (state.scene === 'outdoor') {
+      drawOutdoor(time, cameraX, cameraY, logicalW, logicalH);
+    } else {
+      drawInterior(state.scene, time);
+    }
   }
 
   function setStory(title, text) {
@@ -317,8 +414,8 @@
   function leaveLocation() {
     state.scene = 'outdoor';
     state.player.x = data.outdoor.spawn.x; state.player.y = data.outdoor.spawn.y;
-    locationName.textContent = 'Arrival Courtyard';
-    setStory('Welcome to the learning quarter', 'The courtyard is the shared center of the portfolio. Walk to the Study, Workshop, or Project Terrace to discover supported information about my journey.');
+    locationName.textContent = 'Southern Clearing';
+    setStory('Welcome to Mossbound Forest', 'Begin in the southern clearing. Follow the forest paths to the archive, observatory, workshop, and conservatory to discover the portfolio.');
   }
 
   function interact() {
@@ -396,7 +493,10 @@
   window.addEventListener('keyup', keyup);
   window.addEventListener('blur', clearInput);
   window.addEventListener('pagehide', clearInput);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) clearInput(); });
+  document.addEventListener('visibilitychange', () => {
+    clearInput();
+    state.last = performance.now();
+  });
   canvas.addEventListener('pointerdown', () => canvas.focus());
   window.addEventListener('beforeunload', () => {
     cancelAnimationFrame(state.raf); state.raf = 0; clearInput();
@@ -438,11 +538,14 @@
   observer.observe(canvas);
   state.resizeObserver = observer;
 
-  setStory('Welcome to the learning quarter', 'The courtyard is the shared center of the portfolio. Walk to the Study, Workshop, or Project Terrace to discover supported information about my journey.');
+  setStory('Welcome to Mossbound Forest', 'Begin in the southern clearing. Follow the forest paths to the archive, observatory, workshop, and conservatory to discover the portfolio.');
 
   function loop(time) {
     const dt = Math.min((time-state.last)/1000, 0.05);
     state.last = time;
+    if (!document.hidden && !state.moss.reducedMotion) {
+      state.moss.ambientElapsed += dt * 1000;
+    }
     update(dt);
     render(time);
     state.raf = requestAnimationFrame(loop);

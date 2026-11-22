@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
-  <script src="assets/js/world-data.js?v=downfix1" defer></script>
-  <script src="assets/js/world.js?v=downfix1" defer></script>
+  <script src="assets/js/world-data.js?v=viewport2" defer></script>
+  <script src="assets/js/world.js?v=viewport2" defer></script>
 </head>
 <body>
   <main class="game-main">
@@ -19,7 +19,7 @@
 
       <header class="game-topbar">
         <a class="game-brand" href="index.html" aria-label="Exit to portfolio home">RI<span>·</span></a>
-        <div class="location-label"><small>CURRENT AREA</small><strong id="location-name">Arrival Courtyard</strong></div>
+        <div class="location-label"><small>CURRENT AREA</small><strong id="location-name">Southern Clearing</strong></div>
         <div class="game-actions">
           <button id="text-view-toggle" type="button" aria-expanded="false">Read About</button>
           <button id="map-toggle" type="button" aria-expanded="false">Map <kbd>M</kbd></button>
@@ -28,8 +28,8 @@
 
       <aside id="story-panel" class="story-panel" aria-live="polite" aria-labelledby="story-title">
         <p class="story-place">PORTFOLIO JOURNEY</p>
-        <h1 id="story-title">Welcome to the learning quarter</h1>
-        <p id="story-text">The courtyard is the shared center of the portfolio. Walk to the Study, Workshop, or Project Terrace to discover supported information about my journey.</p>
+        <h1 id="story-title">Welcome to Mossbound Forest</h1>
+        <p id="story-text">Begin in the southern clearing. Follow the forest paths to the archive, observatory, workshop, and conservatory to discover the portfolio.</p>
       </aside>
 
       <div id="interaction-prompt" class="interaction-prompt" hidden><kbd>E</kbd><span>Explore location</span></div>
@@ -41,13 +41,13 @@
       <aside id="world-map" class="world-map" aria-label="World map" hidden>
         <button id="world-map-close" type="button" aria-label="Close map">×</button>
         <p class="eyebrow">DISTRICT MAP</p>
-        <h2>Learning Quarter</h2>
+        <h2>Mossbound Forest</h2>
         <div class="map-grid">
-          <button data-map-region="arrival">Arrival<br><small>Courtyard</small></button>
-          <button data-map-region="study">Learning<br><small>Study</small></button>
-          <button data-map-region="workshop">Developer<br><small>Workshop</small></button>
-          <button data-map-region="projects">Project<br><small>Terrace</small></button>
-          <button data-map-region="garden">Reflection<br><small>Garden</small></button>
+          <button data-map-region="arrival">Arrival<br><small>Southern Clearing</small></button>
+          <button data-map-region="archive">Mothlight<br><small>Archive</small></button>
+          <button data-map-region="observatory">Starfall<br><small>Observatory</small></button>
+          <button data-map-region="workshop">Tidemaker’s<br><small>Workshop</small></button>
+          <button data-map-region="conservatory">Glasscap<br><small>Conservatory</small></button>
         </div>
       </aside>
 
