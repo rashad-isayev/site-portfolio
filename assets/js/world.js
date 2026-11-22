@@ -10,7 +10,7 @@
 
   const state = {
     scene: 'outdoor', player: {
-      x: 480, y: 480, dir: 'down', moving: false,
+      x: 480, y: 300, dir: 'down', moving: false,
       animation: 'idle', frame: 0, animationElapsed: 0
     },
     keys: new Set(), pad: new Set(), near: null, paused: false, textOpen: false,
