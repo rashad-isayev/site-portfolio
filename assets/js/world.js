@@ -10,7 +10,7 @@
 
   const state = {
     scene: 'outdoor', player: {
-      x: 480, y: 480, dir: 'south', moving: false,
+      x: 480, y: 480, dir: 'down', moving: false,
       animation: 'idle', frame: 0, animationElapsed: 0
     },
     keys: new Set(), pad: new Set(), near: null, paused: false, textOpen: false,
@@ -46,8 +46,8 @@
     sprites.walkLoaded = false;
     canvas.dataset.walkSprite = 'error';
   };
-  sprites.idle.src = `${spriteAssetBase}player_idle.png?v=1`;
-  sprites.walk.src = `${spriteAssetBase}player_walk.png?v=1`;
+  sprites.idle.src = `${spriteAssetBase}player_idle.png?v=2`;
+  sprites.walk.src = `${spriteAssetBase}player_walk.png?v=2`;
 
   function clearInput() {
     state.keys.clear(); state.pad.clear(); state.player.moving = false;
@@ -65,8 +65,15 @@
     if (dx === 0 && dy === 0) { state.player.moving = false; return; }
     const length = Math.hypot(dx, dy);
     dx /= length; dy /= length;
-    if (Math.abs(dx) > Math.abs(dy)) state.player.dir = dx > 0 ? 'east' : 'west';
-    else if (Math.abs(dy) > Math.abs(dx)) state.player.dir = dy > 0 ? 'south' : 'north';
+    if (dx !== 0 && dy !== 0) {
+      // Diagonal movement has no diagonal sprite rows. Keep the chosen
+      // horizontal direction stable for both diagonal combinations.
+      state.player.dir = dx > 0 ? 'right' : 'left';
+    } else if (dx !== 0) {
+      state.player.dir = dx > 0 ? 'right' : 'left';
+    } else {
+      state.player.dir = dy > 0 ? 'down' : 'up';
+    }
 
     const running = state.keys.has('ShiftLeft') || state.keys.has('ShiftRight');
     const speed = running ? 150 : 105;

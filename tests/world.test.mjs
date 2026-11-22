@@ -24,6 +24,15 @@ test('player starts outside the Project Terrace collision area', async () => {
   assert.ok(source.includes('[382,330,196,116]'));
 });
 
+test('facing direction uses canonical sprite rows and preserves direction', async () => {
+  const source = await fs.readFile('assets/js/world.js', 'utf8');
+  assert.ok(source.includes("const directionRow = { down: 0, up: 1, left: 2, right: 3 }"));
+  assert.ok(!source.includes("east:"));
+  assert.ok(!source.includes("west:"));
+  assert.ok(source.includes("dx !== 0 && dy !== 0"));
+  assert.ok(source.includes("state.player.dir = dx > 0 ? 'right' : 'left'"));
+});
+
 test('custom spritesheets are integrated as source-frame animations', async () => {
   const source = await fs.readFile('assets/js/world.js', 'utf8');
   for (const required of ['player_walk.png', 'player_idle.png', 'sourceX', 'sourceY']) {
