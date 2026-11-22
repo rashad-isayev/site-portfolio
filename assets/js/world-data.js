@@ -1,7 +1,7 @@
 (() => {
   window.PortfolioWorldData = {
     outdoor: {
-      spawn: { x: 480, y: 300 },
+      spawn: { x: 480, y: 260 },
       bounds: { w: 960, h: 540 },
       collisions: [
         [0,0,960,24],[0,516,960,24],[0,0,24,540],[936,0,24,540],

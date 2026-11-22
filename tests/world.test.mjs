@@ -20,7 +20,7 @@ test('world data defines bounded scenes and separate locations', async () => {
 
 test('player starts outside the Project Terrace collision area', async () => {
   const source = await fs.readFile('assets/js/world-data.js', 'utf8');
-  assert.ok(source.includes('spawn: { x: 480, y: 300 }'));
+  assert.ok(source.includes('spawn: { x: 480, y: 260 }'));
   assert.ok(source.includes('[382,330,196,116]'));
 });
 
