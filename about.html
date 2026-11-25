@@ -8,23 +8,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=fullscreen1">
   <script src="assets/js/world-data.js?v=viewport2" defer></script>
-  <script src="assets/js/world.js?v=viewport2" defer></script>
+  <script src="assets/js/world.js?v=fullscreen1" defer></script>
 </head>
 <body>
   <main class="game-main">
     <section class="game-world" aria-label="Explore Rashad Isayev's interactive portfolio world">
       <canvas id="portfolio-world" width="960" height="540" tabindex="0" aria-label="Top-down portfolio village"></canvas>
 
-      <header class="game-topbar">
-        <a class="game-brand" href="index.html" aria-label="Exit to portfolio home">RI<span>·</span></a>
-        <div class="location-label"><small>CURRENT AREA</small><strong id="location-name">Southern Clearing</strong></div>
-        <div class="game-actions">
-          <button id="text-view-toggle" type="button" aria-expanded="false">Read About</button>
-          <button id="map-toggle" type="button" aria-expanded="false">Map <kbd>M</kbd></button>
-        </div>
-      </header>
+      <a class="game-exit" href="index.html" aria-label="Exit to portfolio home">RI<span>·</span></a>
+      <div class="game-actions-overlay">
+        <button id="text-view-toggle" type="button" aria-expanded="false">Read About</button>
+        <button id="map-toggle" type="button" aria-expanded="false">Map <kbd>M</kbd></button>
+      </div>
 
       <aside id="story-panel" class="story-panel" aria-live="polite" aria-labelledby="story-title">
         <p class="story-place">PORTFOLIO JOURNEY</p>

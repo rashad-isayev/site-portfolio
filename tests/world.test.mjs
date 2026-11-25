@@ -74,3 +74,11 @@ test('viewport renderer keeps shared art-pixel presentation', async () => {
   assert.ok(source.includes('ctx.imageSmoothingEnabled = false'));
   assert.ok(source.includes('frameCount = Number(manifest.frameCount)'));
 });
+
+test('About page has no game header and no padded canvas presentation', async () => {
+  const html = await fs.readFile('about.html', 'utf8');
+  assert.ok(!html.includes('class="game-topbar"'));
+  const css = await fs.readFile('assets/css/style.css', 'utf8');
+  assert.ok(css.includes('.game-world canvas') && css.includes('width:100%'));
+  assert.ok(css.includes('height:100dvh'));
+});

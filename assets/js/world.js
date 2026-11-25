@@ -56,9 +56,9 @@
   sprites.idle.src = `${spriteAssetBase}player_idle.png?v=2`;
   sprites.walk.src = `${spriteAssetBase}player_walk.png?v=2`;
 
-  const mossBaseUrl = new URL('assets/game/mossbound/mossbound-base.png?v=mossbound-viewport1', document.baseURI);
-  const mossAtlasUrl = new URL('assets/game/mossbound/mossbound-motion-atlas.png?v=mossbound-viewport1', document.baseURI);
-  const mossManifestUrl = new URL('assets/game/mossbound/mossbound-frames.json?v=mossbound-viewport1', document.baseURI);
+  const mossBaseUrl = new URL('assets/game/mossbound/mossbound-base.png?v=viewport2', document.baseURI);
+  const mossAtlasUrl = new URL('assets/game/mossbound/mossbound-motion-atlas.png?v=viewport2', document.baseURI);
+  const mossManifestUrl = new URL('assets/game/mossbound/mossbound-frames.json?v=viewport2', document.baseURI);
   const mossBase = new Image();
   const mossAtlas = new Image();
 
@@ -242,7 +242,7 @@
     ctx.fillText(location.name.toUpperCase(), x, top+154);
   }
 
-  function drawPlayer() {
+  function drawPlayer(cameraX = 0, cameraY = 0) {
     const p = state.player;
     const directionRow = { down: 0, up: 1, left: 2, right: 3 }[p.dir] ?? 0;
     const sheet = p.animation === 'walk' ? sprites.walk : sprites.idle;
@@ -258,8 +258,8 @@
     const artY = state.scene === 'outdoor' ? p.y / 1.25 : p.y;
     const renderWidth = 48;
     const renderHeight = 72;
-    const drawX = Math.round(artX - renderWidth / 2);
-    const drawY = Math.round(artY - renderHeight);
+    const drawX = Math.round(artX - renderWidth / 2 - cameraX);
+    const drawY = Math.round(artY - renderHeight - cameraY);
 
     ctx.save();
     ctx.imageSmoothingEnabled = false;
@@ -300,12 +300,11 @@
         const dx = Math.round(tile.x - cameraX);
         const dy = Math.round(tile.y - cameraY);
         const size = tileSize;
-        if (dx + size < cameraX || dx > cameraX + viewW ||
-            dy + size < cameraY || dy > cameraY + viewH) continue;
+        if (dx + size < 0 || dx > viewW || dy + size < 0 || dy > viewH) continue;
         ctx.drawImage(mossAtlas, sx, sy, tileSize, tileSize, dx, dy, size, size);
       }
     }
-    drawPlayer();
+    drawPlayer(cameraX, cameraY);
   }
 
   function drawInterior(kind, time) {
@@ -371,19 +370,16 @@
       cameraY = 0;
     }
 
-    const presentationScale = Math.max(1, Math.floor(Math.min(cssWidth / logicalW, cssHeight / logicalH)));
-    const displayW = logicalW * presentationScale;
-    const displayH = logicalH * presentationScale;
     if (canvas.width !== logicalW || canvas.height !== logicalH) {
       canvas.width = logicalW;
       canvas.height = logicalH;
     }
-    canvas.style.width = `${displayW}px`;
-    canvas.style.height = `${displayH}px`;
-    canvas.style.left = `calc(50% - ${displayW / 2}px)`;
-    canvas.style.top = `calc(50% - ${displayH / 2}px)`;
-    canvas.style.right = 'auto';
-    canvas.style.bottom = 'auto';
+    canvas.style.width = '100vw';
+    canvas.style.height = '100dvh';
+    canvas.style.left = '0';
+    canvas.style.top = '0';
+    canvas.style.right = '0';
+    canvas.style.bottom = '0';
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.imageSmoothingEnabled = false;
@@ -407,14 +403,14 @@
     state.scene = location.scene;
     state.player.x = data[state.scene].spawn.x;
     state.player.y = data[state.scene].spawn.y;
-    locationName.textContent = location.name;
+    if (locationName) locationName.textContent = location.name;
     setStory(location.name, location.detail);
   }
 
   function leaveLocation() {
     state.scene = 'outdoor';
     state.player.x = data.outdoor.spawn.x; state.player.y = data.outdoor.spawn.y;
-    locationName.textContent = 'Southern Clearing';
+    if (locationName) locationName.textContent = 'Southern Clearing';
     setStory('Welcome to Mossbound Forest', 'Begin in the southern clearing. Follow the forest paths to the archive, observatory, workshop, and conservatory to discover the portfolio.');
   }
 
@@ -517,7 +513,7 @@
     if (location.scene === 'outdoor') {
       state.player.x = location.x;
       state.player.y = Math.min(location.y + 78, data.outdoor.bounds.h - 40);
-      locationName.textContent = location.name;
+      if (locationName) locationName.textContent = location.name;
       setStory(location.name, location.detail);
     } else {
       state.player.x = location.x;
