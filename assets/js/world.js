@@ -125,10 +125,26 @@
     canvas.dataset.keys = '';
   }
 
+  function inRect(x, y, [left, top, width, height]) {
+    return x >= left && x < left + width && y >= top && y < top + height;
+  }
+
+  function inPolygon(x, y, points) {
+    let inside = false;
+    for (let i = 0, previous = points.length - 1; i < points.length; previous = i++) {
+      const [ax, ay] = points[previous];
+      const [bx, by] = points[i];
+      if ((ay > y) !== (by > y) && x < ax + (bx - ax) * (y - ay) / (by - ay)) inside = !inside;
+    }
+    return inside;
+  }
+
   function isBlocked(x, y) {
     const map = state.scene === 'outdoor' ? outdoor : data[state.scene];
     if (!map || x < 24 || y < 24 || x > map.bounds.w - 24 || y > map.bounds.h - 24) return true;
     if (state.scene === 'outdoor') {
+      const surface = outdoor.surfaces.find(({ area }) => inRect(x, y, area));
+      if (surface) return !inPolygon(x, y, surface.outline);
       return !outdoor.segments.some(segment => {
         const { ax, ay, dx, dy, lengthSquared, radiusSquared, left, right, top, bottom } = segment;
         if (x < left || x > right || y < top || y > bottom) return false;
@@ -140,6 +156,41 @@
       });
     }
     return map.collisions.some(([rx, ry, rw, rh]) => x + 10 > rx && x - 10 < rx + rw && y + 12 > ry && y - 12 < ry + rh);
+  }
+
+  const slideAngles = [Math.PI / 8, Math.PI / 4, 3 * Math.PI / 8].map(angle => ({
+    forward: Math.cos(angle), sideways: Math.sin(angle)
+  }));
+
+  function stepOutdoors(player, dx, dy, distance) {
+    const steps = Math.ceil(distance / 2);
+    const stride = distance / steps;
+    for (let step = 0; step < steps; step++) {
+      const x = player.x + dx * stride;
+      const y = player.y + dy * stride;
+      if (!isBlocked(x, y)) {
+        player.x = x;
+        player.y = y;
+        continue;
+      }
+
+      // Try the closest legal direction first, moving only along the input's
+      // projection onto that direction so sliding slows near a head-on edge.
+      let slid = false;
+      for (const { forward, sideways } of slideAngles) {
+        for (const side of [-sideways, sideways]) {
+          const slideX = player.x + (dx * forward - dy * side) * stride * forward;
+          const slideY = player.y + (dy * forward + dx * side) * stride * forward;
+          if (isBlocked(slideX, slideY)) continue;
+          player.x = slideX;
+          player.y = slideY;
+          slid = true;
+          break;
+        }
+        if (slid) break;
+      }
+      if (!slid) break;
+    }
   }
 
   function movePlayer(dx, dy, dt) {
@@ -160,10 +211,14 @@
     const speed = running ? 150 : 105;
     const beforeX = state.player.x;
     const beforeY = state.player.y;
-    const nextX = state.player.x + dx * speed * dt;
-    if (!isBlocked(nextX, state.player.y)) state.player.x = nextX;
-    const nextY = state.player.y + dy * speed * dt;
-    if (!isBlocked(state.player.x, nextY)) state.player.y = nextY;
+    if (state.scene === 'outdoor') {
+      stepOutdoors(state.player, dx, dy, speed * dt);
+    } else {
+      const nextX = state.player.x + dx * speed * dt;
+      if (!isBlocked(nextX, state.player.y)) state.player.x = nextX;
+      const nextY = state.player.y + dy * speed * dt;
+      if (!isBlocked(state.player.x, nextY)) state.player.y = nextY;
+    }
     state.player.moving =
       Math.abs(state.player.x - beforeX) > 0.001 ||
       Math.abs(state.player.y - beforeY) > 0.001;
@@ -296,7 +351,9 @@
     const renderWidth = 48;
     const renderHeight = 72;
     const drawX = Math.round(artX - renderWidth / 2 - cameraX);
-    const drawY = Math.round(artY - renderHeight - cameraY);
+    // Both sprite sheets end at source row 90, with six transparent rows below the boots.
+    const footOffset = renderHeight * 90 / 96;
+    const drawY = Math.round(artY - footOffset - cameraY);
 
     ctx.save();
     ctx.imageSmoothingEnabled = false;
@@ -308,18 +365,8 @@
     ctx.restore();
   }
 
-  function drawOutdoor(cameraX, cameraY, viewW, viewH) {
-    if (!outdoor || !state.moss.baseLoaded) {
-      rect(0, 0, viewW, viewH, '#1D3028');
-      ctx.fillStyle = '#91A578';
-      ctx.font = '700 24px ui-monospace, monospace';
-      ctx.fillText('Mossbound Forest', 24, 64);
-      return;
-    }
-
-    ctx.drawImage(mossBase, cameraX, cameraY, viewW, viewH, 0, 0, viewW, viewH);
-    const frame = ambientFrame();
-    canvas.dataset.ambientFrame = String(frame);
+  function drawMossLayers(cameraX, cameraY, viewW, viewH, frame, offsetX = 0, offsetY = 0) {
+    ctx.drawImage(mossBase, cameraX, cameraY, viewW, viewH, offsetX, offsetY, viewW, viewH);
     if (!motionPreference.matches && state.moss.atlasLoaded) {
       const { frameHeight, tileSize } = state.moss.manifest.atlas;
       const { grid, gridColumns, sources } = state.moss.tiles;
@@ -337,12 +384,50 @@
           const count = Math.min(runLength, lastColumn - column + 1);
           const width = count * tileSize;
           ctx.drawImage(mossAtlas, sx, frameY + sy, width, tileSize,
-            x - cameraX, y - cameraY, width, tileSize);
+            x - cameraX + offsetX, y - cameraY + offsetY, width, tileSize);
           column += count - 1;
         }
       }
     }
+  }
+
+  function drawBridgeForeground(cameraX, cameraY, viewW, viewH, frame) {
+    const playerX = state.player.x / outdoor.scale;
+    const playerY = state.player.y / outdoor.scale;
+    for (const { feet, outlines, bounds } of outdoor.bridgeForeground) {
+      if (!inRect(playerX, playerY, feet)) continue;
+      const left = Math.max(cameraX, bounds[0]);
+      const top = Math.max(cameraY, bounds[1]);
+      const right = Math.min(cameraX + viewW, bounds[2]);
+      const bottom = Math.min(cameraY + viewH, bounds[3]);
+      if (left >= right || top >= bottom) continue;
+      ctx.save();
+      ctx.beginPath();
+      for (const [[x, y], ...points] of outlines) {
+        ctx.moveTo(x - cameraX, y - cameraY);
+        for (const [pointX, pointY] of points) ctx.lineTo(pointX - cameraX, pointY - cameraY);
+        ctx.closePath();
+      }
+      ctx.clip();
+      drawMossLayers(left, top, right - left, bottom - top, frame, left - cameraX, top - cameraY);
+      ctx.restore();
+    }
+  }
+
+  function drawOutdoor(cameraX, cameraY, viewW, viewH) {
+    if (!outdoor || !state.moss.baseLoaded) {
+      rect(0, 0, viewW, viewH, '#1D3028');
+      ctx.fillStyle = '#91A578';
+      ctx.font = '700 24px ui-monospace, monospace';
+      ctx.fillText('Mossbound Forest', 24, 64);
+      return;
+    }
+
+    const frame = ambientFrame();
+    canvas.dataset.ambientFrame = String(frame);
+    drawMossLayers(cameraX, cameraY, viewW, viewH, frame);
     drawPlayer(cameraX, cameraY);
+    drawBridgeForeground(cameraX, cameraY, viewW, viewH, frame);
   }
 
   function drawInterior(kind, time) {

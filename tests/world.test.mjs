@@ -34,13 +34,13 @@ test('world data converts v2 walking routes and keeps the four original interior
   for (const location of outdoor.locations) assert.ok(data[location.scene]);
 });
 
-test('a fresh Mossbound world starts on the central trail', async () => {
+test('a fresh Mossbound world starts at the stone crossroads', async () => {
   const { data, manifest } = await loadWorldData();
   const { spawn } = data.createOutdoor(manifest);
-  assert.equal(spawn.x, 933.75);
-  assert.equal(spawn.y, 1258.75);
+  assert.equal(spawn.x, 902.5);
+  assert.equal(spawn.y, 1542.5);
   const html = await fs.readFile('about.html', 'utf8');
-  assert.match(html, /Go north to the village or south to Moonpool/);
+  assert.match(html, /Start at the stone crossroads. Go north to the village or south to Moonpool/);
 });
 
 test('facing direction uses canonical sprite rows and preserves direction', async () => {
@@ -90,7 +90,7 @@ test('viewport renderer keeps shared art-pixel presentation', async () => {
   assert.ok(source.includes('ctx.clearRect(0, 0, logicalW, logicalH)'));
   assert.ok(source.includes('ctx.imageSmoothingEnabled = false'));
   assert.ok(source.includes('mossBase, cameraX, cameraY, viewW, viewH'));
-  assert.ok(source.includes('x - cameraX, y - cameraY, width, tileSize'));
+  assert.ok(source.includes('x - cameraX + offsetX, y - cameraY + offsetY, width, tileSize'));
 });
 
 test('About page has no game header and no padded canvas presentation', async () => {
