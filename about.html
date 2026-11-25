@@ -9,13 +9,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css?v=fullscreen1">
-  <script src="assets/js/world-data.js?v=viewport2" defer></script>
-  <script src="assets/js/world.js?v=fullscreen1" defer></script>
+  <script src="assets/js/world-data.js?v=moonpool-v2" defer></script>
+  <script src="assets/js/world.js?v=moonpool-v2" defer></script>
 </head>
 <body>
   <main class="game-main">
     <section class="game-world" aria-label="Explore Rashad Isayev's interactive portfolio world">
-      <canvas id="portfolio-world" width="960" height="540" tabindex="0" aria-label="Top-down portfolio village"></canvas>
+      <canvas id="portfolio-world" width="960" height="540" tabindex="0" aria-label="Top-down Mossbound Forest"></canvas>
 
       <a class="game-exit" href="index.html" aria-label="Exit to portfolio home">RI<span>·</span></a>
       <div class="game-actions-overlay">
@@ -26,7 +26,7 @@
       <aside id="story-panel" class="story-panel" aria-live="polite" aria-labelledby="story-title">
         <p class="story-place">PORTFOLIO JOURNEY</p>
         <h1 id="story-title">Welcome to Mossbound Forest</h1>
-        <p id="story-text">Begin in the southern clearing. Follow the forest paths to the archive, observatory, workshop, and conservatory to discover the portfolio.</p>
+        <p id="story-text">Start on the central trail. Go north to the village or south to Moonpool.</p>
       </aside>
 
       <div id="interaction-prompt" class="interaction-prompt" hidden><kbd>E</kbd><span>Explore location</span></div>
@@ -40,7 +40,7 @@
         <p class="eyebrow">DISTRICT MAP</p>
         <h2>Mossbound Forest</h2>
         <div class="map-grid">
-          <button data-map-region="arrival">Arrival<br><small>Southern Clearing</small></button>
+          <button data-map-region="arrival">Arrival<br><small>Central Trail</small></button>
           <button data-map-region="archive">Mothlight<br><small>Archive</small></button>
           <button data-map-region="observatory">Starfall<br><small>Observatory</small></button>
           <button data-map-region="workshop">Tidemaker’s<br><small>Workshop</small></button>

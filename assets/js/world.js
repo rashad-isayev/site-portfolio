@@ -8,9 +8,11 @@
   const data = window.PortfolioWorldData;
   if (!data) return;
 
+  let outdoor;
+  const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
   const state = {
     scene: 'outdoor', player: {
-      x: 755 * 1.25, y: 955 * 1.25, dir: 'up', moving: false,
+      x: 0, y: 0, dir: 'up', moving: false,
       animation: 'idle', frame: 0, animationElapsed: 0
     },
     keys: new Set(), pad: new Set(), near: null, paused: false, textOpen: false,
@@ -20,14 +22,14 @@
       baseLoaded: false,
       atlasLoaded: false,
       ambientElapsed: 0,
-      reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches
+      tiles: null
     }
   };
 
   const story = document.querySelector('#story-panel');
   const storyTitle = document.querySelector('#story-title');
   const storyText = document.querySelector('#story-text');
-  const locationName = document.querySelector('#location-name');
+  const arrivalStory = { title: storyTitle.textContent, text: storyText.textContent };
   const prompt = document.querySelector('#interaction-prompt');
   const spriteAssetBase = new URL('assets/game/character/', document.baseURI).href;
   const sprites = {
@@ -56,24 +58,67 @@
   sprites.idle.src = `${spriteAssetBase}player_idle.png?v=2`;
   sprites.walk.src = `${spriteAssetBase}player_walk.png?v=2`;
 
-  const mossBaseUrl = new URL('assets/game/mossbound/mossbound-base.png?v=viewport2', document.baseURI);
-  const mossAtlasUrl = new URL('assets/game/mossbound/mossbound-motion-atlas.png?v=viewport2', document.baseURI);
-  const mossManifestUrl = new URL('assets/game/mossbound/mossbound-frames.json?v=viewport2', document.baseURI);
+  const mossAssetBase = new URL('assets/game/mossbound/', document.baseURI);
+  const mossAssetUrl = file => new URL(`${file}?v=moonpool-v2`, mossAssetBase);
   const mossBase = new Image();
   const mossAtlas = new Image();
 
   mossBase.onload = () => { state.moss.baseLoaded = true; canvas.dataset.mossBase = 'loaded'; };
-  mossAtlas.onload = () => { state.moss.atlasLoaded = true; canvas.dataset.mossAtlas = 'loaded'; };
   mossBase.onerror = () => { state.moss.baseLoaded = false; canvas.dataset.mossBase = 'error'; };
-  mossAtlas.onerror = () => { state.moss.atlasLoaded = false; canvas.dataset.mossAtlas = 'error'; };
+  mossBase.src = mossAssetUrl('mossbound-base.png').href;
 
-  fetch(mossManifestUrl)
+  function loadMotionAtlas() {
+    const manifest = state.moss.manifest;
+    if (!manifest || motionPreference.matches || mossAtlas.src) return;
+    const { atlas, frameCount, width, height } = manifest;
+    const { tileSize, columns, frameHeight } = atlas;
+    const gridColumns = Math.ceil(width / tileSize);
+    const gridRows = Math.ceil(height / tileSize);
+    const grid = new Uint16Array(gridColumns * gridRows);
+    const sources = atlas.tiles.map(({ x, y }, index) => {
+      grid[y / tileSize * gridColumns + x / tileSize] = index + 1;
+      return { x, y, sx: index % columns * tileSize, sy: Math.floor(index / columns) * tileSize, runLength: 1 };
+    });
+    // A horizontal run can share one draw when the same tiles are neighbors in the atlas.
+    for (let index = sources.length - 2; index >= 0; index--) {
+      const tile = sources[index];
+      const next = sources[index + 1];
+      if (next.y === tile.y && next.x === tile.x + tileSize && next.sy === tile.sy) {
+        tile.runLength += next.runLength;
+      }
+    }
+
+    mossAtlas.src = mossAssetUrl(atlas.file).href;
+    mossAtlas.decode().then(() => {
+      if (mossAtlas.naturalWidth !== columns * tileSize || mossAtlas.naturalHeight !== frameHeight * frameCount) {
+        throw new Error('Mossbound atlas dimensions do not match the manifest');
+      }
+      state.moss.tiles = { grid, gridColumns, sources };
+      state.moss.atlasLoaded = true;
+      canvas.dataset.mossAtlas = 'loaded';
+    }).catch(() => {
+      canvas.dataset.mossAtlas = 'error';
+    });
+  }
+
+  motionPreference.addEventListener('change', () => {
+    state.moss.ambientElapsed = 0;
+    loadMotionAtlas();
+  });
+
+  fetch(mossAssetUrl('mossbound-frames.json'))
     .then(response => response.ok ? response.json() : Promise.reject(new Error(`Manifest ${response.status}`)))
-    .then(manifest => { state.moss.manifest = manifest; canvas.dataset.mossManifest = 'loaded'; })
-    .catch(() => { state.moss.manifest = null; canvas.dataset.mossManifest = 'error'; });
-
-  mossBase.src = mossBaseUrl.href;
-  mossAtlas.src = mossAtlasUrl.href;
+    .then(manifest => {
+      outdoor = data.createOutdoor(manifest);
+      Object.assign(state.player, outdoor.spawn);
+      state.moss.manifest = manifest;
+      canvas.dataset.mossManifest = 'loaded';
+      loadMotionAtlas();
+    })
+    .catch(() => {
+      canvas.dataset.mossManifest = 'error';
+      setStory(arrivalStory.title, 'The trail data could not load. Reload to try again, or use Read About.');
+    });
 
   function clearInput() {
     state.keys.clear(); state.pad.clear(); state.player.moving = false;
@@ -81,25 +126,17 @@
   }
 
   function isBlocked(x, y) {
-    const map = data[state.scene];
-    if (!map) return true;
-    if (x < 24 || y < 24 || x > map.bounds.w - 24 || y > map.bounds.h - 24) return true;
+    const map = state.scene === 'outdoor' ? outdoor : data[state.scene];
+    if (!map || x < 24 || y < 24 || x > map.bounds.w - 24 || y > map.bounds.h - 24) return true;
     if (state.scene === 'outdoor') {
-      const margin = 10;
-      return !map.routes.some(route => {
-        const radius = route.radius + margin;
-        for (let i = 0; i < route.points.length - 1; i++) {
-          const [ax, ay] = route.points[i];
-          const [bx, by] = route.points[i + 1];
-          const dx = bx - ax;
-          const dy = by - ay;
-          const lengthSquared = dx * dx + dy * dy;
-          const t = lengthSquared ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / lengthSquared)) : 0;
-          const px = ax + t * dx;
-          const py = ay + t * dy;
-          if (Math.hypot(x - px, y - py) <= radius) return true;
-        }
-        return false;
+      return !outdoor.segments.some(segment => {
+        const { ax, ay, dx, dy, lengthSquared, radiusSquared, left, right, top, bottom } = segment;
+        if (x < left || x > right || y < top || y > bottom) return false;
+        const projection = ((x - ax) * dx + (y - ay) * dy) / lengthSquared;
+        const t = Math.max(0, Math.min(1, projection));
+        const offsetX = x - ax - t * dx;
+        const offsetY = y - ay - t * dy;
+        return offsetX * offsetX + offsetY * offsetY <= radiusSquared;
       });
     }
     return map.collisions.some(([rx, ry, rw, rh]) => x + 10 > rx && x - 10 < rx + rw && y + 12 > ry && y - 12 < ry + rh);
@@ -159,16 +196,15 @@
     canvas.dataset.direction = state.player.dir;
     canvas.dataset.animation = state.player.animation;
     canvas.dataset.animationFrame = String(state.player.frame);
-    const manifest = state.moss.manifest;
-    if (manifest) {
-      const frameCount = Number(manifest.frameCount) || 12;
-      const frameMs = Number(manifest.frameMs) || 160;
-      canvas.dataset.ambientFrame = String(Math.floor(state.moss.ambientElapsed / frameMs) % frameCount);
-    }
+  }
+
+  function ambientFrame() {
+    const { frameMs, frameCount } = state.moss.manifest;
+    return Math.floor(state.moss.ambientElapsed / frameMs) % frameCount;
   }
 
   function update(dt) {
-    if (state.paused || state.textOpen) { state.player.moving = false; return; }
+    if (!outdoor || state.paused || state.textOpen) { state.player.moving = false; return; }
     let dx = 0, dy = 0;
     if (state.keys.has('ArrowLeft') || state.keys.has('KeyA') || state.pad.has('left')) dx--;
     if (state.keys.has('ArrowRight') || state.keys.has('KeyD') || state.pad.has('right')) dx++;
@@ -180,7 +216,7 @@
     state.near = null;
     if (state.scene === 'outdoor') {
       let nearest = 74;
-      for (const location of data.outdoor.locations) {
+      for (const location of outdoor.locations) {
         const distance = Math.hypot(state.player.x - location.x, state.player.y - location.y);
         if (distance < nearest) { nearest = distance; state.near = { kind: 'location', location }; }
       }
@@ -254,8 +290,9 @@
       : Math.max(0, Math.min(1, p.frame));
     const sourceX = sourceFrame * 64;
     const sourceY = directionRow * 96;
-    const artX = state.scene === 'outdoor' ? p.x / 1.25 : p.x;
-    const artY = state.scene === 'outdoor' ? p.y / 1.25 : p.y;
+    const scale = state.scene === 'outdoor' ? outdoor.scale : 1;
+    const artX = p.x / scale;
+    const artY = p.y / scale;
     const renderWidth = 48;
     const renderHeight = 72;
     const drawX = Math.round(artX - renderWidth / 2 - cameraX);
@@ -271,37 +308,38 @@
     ctx.restore();
   }
 
-  function drawOutdoor(time, cameraX, cameraY, viewW, viewH) {
-    if (state.moss.baseLoaded) {
-      ctx.drawImage(
-        mossBase,
-        0, 0, 1536, 1024,
-        -Math.round(cameraX), -Math.round(cameraY), 1536, 1024
-      );
-    } else {
-      rect(0, 0, 1920, 1280, '#1D3028');
+  function drawOutdoor(cameraX, cameraY, viewW, viewH) {
+    if (!outdoor || !state.moss.baseLoaded) {
+      rect(0, 0, viewW, viewH, '#1D3028');
       ctx.fillStyle = '#91A578';
       ctx.font = '700 24px ui-monospace, monospace';
-      ctx.fillText('Mossbound Forest', 80, 100);
+      ctx.fillText('Mossbound Forest', 24, 64);
+      return;
     }
-    const manifest = state.moss.manifest;
-    if (!state.moss.reducedMotion && manifest && state.moss.atlasLoaded) {
-      const frameCount = Number(manifest.frameCount) || 12;
-      const frameMs = Number(manifest.frameMs) || 160;
-      const frameIndex = Math.floor(state.moss.ambientElapsed / frameMs) % frameCount;
-      const columns = manifest.atlas.columns;
-      const tileSize = manifest.atlas.tileSize;
-      const frameHeight = manifest.atlas.frameHeight;
-      const scale = manifest.worldScale || 1.25;
-      for (let i = 0; i < manifest.atlas.tiles.length; i++) {
-        const tile = manifest.atlas.tiles[i];
-        const sx = (i % columns) * tileSize;
-        const sy = frameIndex * frameHeight + Math.floor(i / columns) * tileSize;
-        const dx = Math.round(tile.x - cameraX);
-        const dy = Math.round(tile.y - cameraY);
-        const size = tileSize;
-        if (dx + size < 0 || dx > viewW || dy + size < 0 || dy > viewH) continue;
-        ctx.drawImage(mossAtlas, sx, sy, tileSize, tileSize, dx, dy, size, size);
+
+    ctx.drawImage(mossBase, cameraX, cameraY, viewW, viewH, 0, 0, viewW, viewH);
+    const frame = ambientFrame();
+    canvas.dataset.ambientFrame = String(frame);
+    if (!motionPreference.matches && state.moss.atlasLoaded) {
+      const { frameHeight, tileSize } = state.moss.manifest.atlas;
+      const { grid, gridColumns, sources } = state.moss.tiles;
+      const firstColumn = Math.floor(cameraX / tileSize);
+      const lastColumn = Math.floor((cameraX + viewW - 1) / tileSize);
+      const firstRow = Math.floor(cameraY / tileSize);
+      const lastRow = Math.floor((cameraY + viewH - 1) / tileSize);
+      const frameY = frame * frameHeight;
+      for (let row = firstRow; row <= lastRow; row++) {
+        const rowStart = row * gridColumns;
+        for (let column = firstColumn; column <= lastColumn; column++) {
+          const index = grid[rowStart + column];
+          if (!index) continue;
+          const { x, y, sx, sy, runLength } = sources[index - 1];
+          const count = Math.min(runLength, lastColumn - column + 1);
+          const width = count * tileSize;
+          ctx.drawImage(mossAtlas, sx, frameY + sy, width, tileSize,
+            x - cameraX, y - cameraY, width, tileSize);
+          column += count - 1;
+        }
       }
     }
     drawPlayer(cameraX, cameraY);
@@ -340,7 +378,6 @@
     syncDebugState();
     const cssWidth = window.innerWidth;
     const cssHeight = window.innerHeight;
-    const map = data[state.scene];
     let logicalW;
     let logicalH;
     if (state.scene === 'outdoor') {
@@ -352,22 +389,13 @@
       logicalW = 640;
       logicalH = 480;
     }
-    const artScale = state.scene === 'outdoor' ? 1 : 1;
-    const mapArtW = state.scene === 'outdoor' ? 1536 : map.bounds.w;
-    const mapArtH = state.scene === 'outdoor' ? 1024 : map.bounds.h;
-
     let cameraX = 0;
     let cameraY = 0;
-    if (state.scene === 'outdoor') {
-      const playerArtX = state.player.x / 1.25;
-      const playerArtY = state.player.y / 1.25;
-      cameraX = Math.round(playerArtX - logicalW / 2);
-      cameraY = Math.round(playerArtY - logicalH / 2);
-      cameraX = Math.max(0, Math.min(mapArtW - logicalW, cameraX));
-      cameraY = Math.max(0, Math.min(mapArtH - logicalH, cameraY));
-    } else {
-      cameraX = 0;
-      cameraY = 0;
+    if (state.scene === 'outdoor' && outdoor) {
+      const playerArtX = state.player.x / outdoor.scale;
+      const playerArtY = state.player.y / outdoor.scale;
+      cameraX = Math.max(0, Math.min(outdoor.artWidth - logicalW, Math.round(playerArtX - logicalW / 2)));
+      cameraY = Math.max(0, Math.min(outdoor.artHeight - logicalH, Math.round(playerArtY - logicalH / 2)));
     }
 
     if (canvas.width !== logicalW || canvas.height !== logicalH) {
@@ -384,9 +412,8 @@
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, logicalW, logicalH);
-    ctx.imageSmoothingEnabled = false;
     if (state.scene === 'outdoor') {
-      drawOutdoor(time, cameraX, cameraY, logicalW, logicalH);
+      drawOutdoor(cameraX, cameraY, logicalW, logicalH);
     } else {
       drawInterior(state.scene, time);
     }
@@ -403,15 +430,13 @@
     state.scene = location.scene;
     state.player.x = data[state.scene].spawn.x;
     state.player.y = data[state.scene].spawn.y;
-    if (locationName) locationName.textContent = location.name;
     setStory(location.name, location.detail);
   }
 
   function leaveLocation() {
     state.scene = 'outdoor';
-    state.player.x = data.outdoor.spawn.x; state.player.y = data.outdoor.spawn.y;
-    if (locationName) locationName.textContent = 'Southern Clearing';
-    setStory('Welcome to Mossbound Forest', 'Begin in the southern clearing. Follow the forest paths to the archive, observatory, workshop, and conservatory to discover the portfolio.');
+    Object.assign(state.player, outdoor.spawn);
+    setStory(arrivalStory.title, arrivalStory.text);
   }
 
   function interact() {
@@ -505,20 +530,12 @@
   });
 
   document.querySelectorAll('[data-map-region]').forEach(button => button.addEventListener('click', () => {
+    if (!outdoor) return;
     const region = button.dataset.mapRegion;
-    if (region === 'arrival') { leaveLocation(); toggleMap(false); return; }
-    const location = data.outdoor.locations.find(item => item.id === region);
-    if (!location) { toggleMap(false); return; }
-    state.scene = 'outdoor';
-    if (location.scene === 'outdoor') {
-      state.player.x = location.x;
-      state.player.y = Math.min(location.y + 78, data.outdoor.bounds.h - 40);
-      if (locationName) locationName.textContent = location.name;
-      setStory(location.name, location.detail);
-    } else {
-      state.player.x = location.x;
-      state.player.y = location.y + 78;
-      enterLocation(location);
+    if (region === 'arrival') leaveLocation();
+    else {
+      const location = outdoor.locations.find(item => item.id === region);
+      if (location) enterLocation(location);
     }
     toggleMap(false);
   }));
@@ -534,15 +551,14 @@
   observer.observe(canvas);
   state.resizeObserver = observer;
 
-  setStory('Welcome to Mossbound Forest', 'Begin in the southern clearing. Follow the forest paths to the archive, observatory, workshop, and conservatory to discover the portfolio.');
-
   function loop(time) {
-    const dt = Math.min((time-state.last)/1000, 0.05);
+    const elapsed = Math.max(0, time - state.last);
     state.last = time;
-    if (!document.hidden && !state.moss.reducedMotion) {
-      state.moss.ambientElapsed += dt * 1000;
+    if (!document.hidden && !motionPreference.matches && state.moss.atlasLoaded) {
+      const { frameCount, frameMs } = state.moss.manifest;
+      state.moss.ambientElapsed = (state.moss.ambientElapsed + elapsed) % (frameCount * frameMs);
     }
-    update(dt);
+    update(Math.min(elapsed / 1000, 0.05));
     render(time);
     state.raf = requestAnimationFrame(loop);
   }

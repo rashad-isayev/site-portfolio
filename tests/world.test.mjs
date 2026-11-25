@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import vm from 'node:vm';
 
 test('About world has one player renderer and one animation loop', async () => {
   const source = await fs.readFile('assets/js/world.js', 'utf8');
@@ -10,20 +11,36 @@ test('About world has one player renderer and one animation loop', async () => {
   assert.ok(source.includes('cancelAnimationFrame(state.raf)'));
 });
 
-test('world data defines bounded scenes and separate locations', async () => {
+async function loadWorldData() {
   const source = await fs.readFile('assets/js/world-data.js', 'utf8');
-  for (const required of ['outdoor:', 'study:', 'workshop:', 'projects:', 'Mothlight Archive', 'Starfall Observatory', 'Tidemaker’s Workshop', 'Glasscap Conservatory']) {
-    assert.ok(source.includes(required));
-  }
-  assert.ok(source.includes('w: 1920'));
-  assert.ok(source.includes('h: 1280'));
-  assert.ok(source.includes('routes:'));
+  const manifest = JSON.parse(await fs.readFile('assets/game/mossbound/mossbound-frames.json', 'utf8'));
+  const context = { window: {} };
+  vm.runInNewContext(source, context);
+  return { data: context.window.PortfolioWorldData, manifest };
+}
+
+test('world data converts v2 walking routes and keeps the four original interiors', async () => {
+  const { data, manifest } = await loadWorldData();
+  const outdoor = data.createOutdoor(manifest);
+
+  assert.equal(outdoor.bounds.w, 1920);
+  assert.equal(outdoor.bounds.h, 2520);
+  assert.deepEqual(Array.from(outdoor.locations, location => location.name), [
+    'Mothlight Archive', 'Starfall Observatory', 'Glasscap Conservatory', 'Tidemaker’s Workshop'
+  ]);
+  assert.equal(outdoor.segments.length, manifest.walkable.routes.reduce((total, route) => total + route.points.length - 1, 0));
+  assert.equal(outdoor.segments[0].ax, manifest.walkable.routes[0].points[0][0] * manifest.worldScale);
+  assert.equal(outdoor.locations[0].y, manifest.landmarks[0].y * manifest.worldScale);
+  for (const location of outdoor.locations) assert.ok(data[location.scene]);
 });
 
-test('player starts at the Mossbound southern clearing', async () => {
-  const source = await fs.readFile('assets/js/world-data.js', 'utf8');
-  assert.ok(source.includes('spawn: { x: 755 * scale, y: 955 * scale }'));
-  assert.ok(source.includes('Tidemaker’s Workshop'));
+test('a fresh Mossbound world starts on the central trail', async () => {
+  const { data, manifest } = await loadWorldData();
+  const { spawn } = data.createOutdoor(manifest);
+  assert.equal(spawn.x, 933.75);
+  assert.equal(spawn.y, 1258.75);
+  const html = await fs.readFile('about.html', 'utf8');
+  assert.match(html, /Go north to the village or south to Moonpool/);
 });
 
 test('facing direction uses canonical sprite rows and preserves direction', async () => {
@@ -51,18 +68,18 @@ test('custom spritesheets are integrated as source-frame animations', async () =
 test('Mossbound manifest supplies exact art scale, timing, and spawn', async () => {
   const manifest = JSON.parse(await fs.readFile('assets/game/mossbound/mossbound-frames.json', 'utf8'));
   assert.equal(manifest.width, 1536);
-  assert.equal(manifest.height, 1024);
+  assert.equal(manifest.height, 2016);
   assert.equal(manifest.worldScale, 1.25);
   assert.equal(manifest.worldWidth, 1920);
-  assert.equal(manifest.worldHeight, 1280);
-  assert.equal(manifest.spawn.x, 755);
-  assert.equal(manifest.spawn.y, 955);
+  assert.equal(manifest.worldHeight, 2520);
+  assert.equal(manifest.spawn.x, 747);
+  assert.equal(manifest.spawn.y, 1007);
   assert.equal(manifest.frameMs, 160);
-  assert.equal(manifest.frameCount, 12);
-  assert.equal(manifest.loopMs, 1920);
-  assert.equal(manifest.atlas.frameHeight, 256);
-  assert.equal(manifest.atlas.tileSize, 32);
-  assert.equal(manifest.walkable.routes.length, 4);
+  assert.equal(manifest.frameCount, 24);
+  assert.equal(manifest.loopMs, 3840);
+  assert.equal(manifest.atlas.frameHeight, 272);
+  assert.equal(manifest.atlas.tileSize, 16);
+  assert.equal(manifest.walkable.routes.length, 10);
 });
 
 test('viewport renderer keeps shared art-pixel presentation', async () => {
@@ -72,7 +89,8 @@ test('viewport renderer keeps shared art-pixel presentation', async () => {
   assert.ok(source.includes('logicalW = Math.round'));
   assert.ok(source.includes('ctx.clearRect(0, 0, logicalW, logicalH)'));
   assert.ok(source.includes('ctx.imageSmoothingEnabled = false'));
-  assert.ok(source.includes('frameCount = Number(manifest.frameCount)'));
+  assert.ok(source.includes('mossBase, cameraX, cameraY, viewW, viewH'));
+  assert.ok(source.includes('x - cameraX, y - cameraY, width, tileSize'));
 });
 
 test('About page has no game header and no padded canvas presentation', async () => {
